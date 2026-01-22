@@ -33,7 +33,11 @@ def init():
 
 def inital_data_exploration():
     if (is_debug_mode()):
-        print(f'Data shape: {data.shape()}')
+        print(f'Data shape: {data.shape}\n') # (10781, 9)
+        print(f'Top 5 observations \n{data.head()}\n')
+        print(f'Last 5 observations \n{data.tail()}\n')
+        print(f'Data Types:\n {data.info()}')
+    # sns.heatmap(data)
 
 def main():
     init()
