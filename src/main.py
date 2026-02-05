@@ -9,15 +9,18 @@ SEED = 1234
 DEBUG = 0
 
 def is_debug_mode():
+    """Return whether debug mode is enabled."""
     global DEBUG
     return DEBUG == 1
 
 def activate_debug():
+    """Set the DEBUG flag from command-line arguments when provided."""
     global DEBUG
     if (len(sys.argv)) > 2:
         DEBUG = int(sys.argv[2])
 
 def activate_seed():
+    """Set the random SEED from command-line arguments or fall back to 1."""
     global SEED, DEBUG
     if (len(sys.argv)) > 1:
         SEED = sys.argv[1]
@@ -26,6 +29,7 @@ def activate_seed():
 
 
 def init_data():
+    """Load the BMW dataset into the global data variable."""
     global data
     BASE_DIR = Path(__file__).resolve().parent.parent
     data_path = BASE_DIR / "data" / "bmw.csv"
@@ -36,12 +40,14 @@ def init_data():
     data = pd.read_csv(data_path)
 
 def init():
+    """Initialize runtime settings, load data, and configure plot styling."""
     activate_debug()
     activate_seed()
     init_data()
     sns.set_theme()
 
 def inital_data_exploration():
+    """Print basic dataset diagnostics when debug mode is enabled."""
     if is_debug_mode():
         print(f'Data shape: {data.shape}\n') # (10781, 9)
         print(f'Top 5 observations \n{data.head()}\n')
@@ -54,6 +60,7 @@ def inital_data_exploration():
     # sns.heatmap(data)
 
 def feature_inspection():
+    """Summarize model counts and render a bar chart of frequencies."""
     if is_debug_mode():
         print(data['model'].value_counts().sort_index())
     model_data = data["model"].to_frame() #
@@ -74,6 +81,7 @@ def feature_inspection():
     plt.show()
 
 def plot_avg_price_by_model(data, output_path="model_avg_price.png"):
+    """Plot and save average price by model from the provided dataset."""
     avg_prices = (
           data.groupby("model", as_index=False)["price"]
           .mean()
@@ -93,6 +101,7 @@ def plot_avg_price_by_model(data, output_path="model_avg_price.png"):
 
 
 def main():
+    """Run the full analysis workflow and produce plots."""
     global data
     init()
     inital_data_exploration()
