@@ -1,8 +1,11 @@
 import sys
+import inspect
 from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
+
+import graph_creation as graphs
 
 IMAGE_PATH = "images/"
 SEED = 1234
@@ -20,33 +23,32 @@ def activate_debug():
         DEBUG = int(sys.argv[2])
 
 def activate_seed():
-    """Set the random SEED from command-line arguments or fall back to 1."""
+    """Set the random SEED from command-line arguments or fall back to default value shown on top."""
     global SEED, DEBUG
     if (len(sys.argv)) > 1:
         SEED = sys.argv[1]
-    else:
-        SEED = 1 # default to DEBUG mode currently
 
 
-def init_data():
+def init_data(data):
     """Load the BMW dataset into the global data variable."""
-    global data
     BASE_DIR = Path(__file__).resolve().parent.parent
     data_path = BASE_DIR / "data" / "bmw.csv"
     if is_debug_mode():
         print(f'Current Working Dir: {BASE_DIR}')
         print(f'Data Path: {data_path}')
 
-    data = pd.read_csv(data_path)
+    return pd.read_csv(data_path)
+
 
 def init():
     """Initialize runtime settings, load data, and configure plot styling."""
     activate_debug()
     activate_seed()
-    init_data()
+    data = init_data()
     sns.set_theme()
+    return data
 
-def inital_data_exploration():
+def inital_data_exploration(data):
     """Print basic dataset diagnostics when debug mode is enabled."""
     if is_debug_mode():
         print(f'Data shape: {data.shape}\n') # (10781, 9)
@@ -57,7 +59,7 @@ def inital_data_exploration():
             # A few intresting feature I should check out: Model, fueltype
         print(f'Missing Values:\n{data.isnull().sum()}\n') # no missing values
         print(f'Percentage of Missing Values:\n{(data.isnull().sum()/(len(data)))*100}\n')
-    # sns.heatmap(data)
+    
 
 def feature_inspection():
     """Summarize model counts and render a bar chart of frequencies."""
@@ -80,24 +82,16 @@ def feature_inspection():
     plt.savefig("model_plot.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-def plot_avg_price_by_model(data, output_path="model_avg_price.png"):
-    """Plot and save average price by model from the provided dataset."""
-    avg_prices = (
-          data.groupby("model", as_index=False)["price"]
-          .mean()
-          .sort_values("price", ascending=False)
-      )
-    plt.figure(figsize=(10, 6)), \
-        sns.barplot(data=avg_prices, x="model", y="price")
+def plot_all_plots(input_data, image_dir_path, excluded: list):
+    all_functions = inspect.getmembers(graphs, inspect.isfunction)
     
-    plt.xlabel("Model")
-    plt.ylabel("Average Price")
-    plt.title("Average Price by BMW Model")
-    plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()
+    for func_name, plot_graph in all_functions:
+        if  func_name in excluded:
+            continue
+        else:
+            plot_graph(input_data, image_dir_path)
 
-    plt.savefig(output_path, dpi=300, bbox_inches="tight")
-    plt.close()
+
 
 
 def main():
@@ -107,6 +101,7 @@ def main():
     inital_data_exploration()
     if is_debug_mode():
         feature_inspection()
-    plot_avg_price_by_model(data, IMAGE_PATH)
+        plot_all_plots()
+    
 
 main()
